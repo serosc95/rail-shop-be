@@ -33,7 +33,7 @@ export class CreatePaymentUseCase {
 
     await this.transactionRepo.create(transaction);
 
-    const result = await this.wompi.chargeCard(input.cardData, total);
+    const result = await this.wompi.chargeCard(input.cardData);
     if (!result.success) {
       await this.transactionRepo.updateStatus(transaction.id, TransactionStatus.FAILED);
       return fail('PaymentFailed');

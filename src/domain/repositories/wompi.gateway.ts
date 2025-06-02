@@ -1,6 +1,5 @@
 export interface WompiGateway {
   chargeCard(
-    cardData: any,
-    amount: number
+    cardData: any
   ): Promise<{ success: boolean; transactionId?: string }>;
 }

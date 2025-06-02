@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductController } from './infrastructure/controllers/product.controller';
 import { PaymentController } from './infrastructure/controllers/payment.controller';
@@ -12,6 +13,10 @@ import { CreatePaymentUseCase } from './app/use-cases/create-payment.usecase';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
