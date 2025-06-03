@@ -17,7 +17,7 @@ export class TransactionRepositoryAdapter implements TransactionRepository {
       id: transaction.id,
       productId: transaction.productId,
       amount: transaction.amount,
-      deliveryAddress: transaction.deliveryAddress,
+      customerEmail: transaction.customerEmail,
       status: transaction.status,
       wompiTransactionId: transaction.wompiTransactionId,
     });
@@ -28,7 +28,7 @@ export class TransactionRepositoryAdapter implements TransactionRepository {
       saved.id,
       saved.productId,
       Number(saved.amount),
-      saved.deliveryAddress,
+      saved.customerEmail,
       saved.status as TransactionStatus,
       saved.wompiTransactionId,
     );

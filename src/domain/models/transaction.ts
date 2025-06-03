@@ -9,7 +9,7 @@ export class Transaction {
     public readonly id: string,
     public readonly productId: string,
     public readonly amount: number,
-    public readonly deliveryAddress: string,
+    public readonly customerEmail: string,
     public status: TransactionStatus,
     public wompiTransactionId?: string,
   ) {}

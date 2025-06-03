@@ -12,6 +12,6 @@ export class PaymentController {
     if (result.isFailure()) {
       throw new BadRequestException(result.value);
     }
-    return { status: 'ok' };
+    return { message: "Pago recibido correctamente" };
   }
 }

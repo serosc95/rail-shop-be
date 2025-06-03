@@ -4,7 +4,7 @@ import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 export class TransactionEntity {
   @PrimaryGeneratedColumn('uuid') id: string;
   @Column() productId: string;
-  @Column() deliveryAddress: string;
+  @Column() customerEmail: string;
   @Column('decimal') amount: number;
   @Column() status: string;
   @Column({ nullable: true }) wompiTransactionId: string;
