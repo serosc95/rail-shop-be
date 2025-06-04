@@ -1,13 +1,19 @@
+import { Injectable, Inject } from '@nestjs/common';
 import { ok, fail, Result } from '../../shared/rop';
+import { PRODUCT_REPOSITORY, TRANSACTION_REPOSITORY, WOMPI_REPOSITORY } from '../../domain/repositories/tokens';
 import { ProductRepository } from '../../domain/repositories/product.repository';
 import { TransactionRepository } from '../../domain/repositories/transaction.repository';
 import { WompiGateway } from '../../domain/repositories/wompi.gateway';
 import { Transaction, TransactionStatus } from '../../domain/models/transaction';
 
+@Injectable()
 export class CreatePaymentUseCase {
   constructor(
+    @Inject(PRODUCT_REPOSITORY)
     private readonly productRepo: ProductRepository,
+    @Inject(TRANSACTION_REPOSITORY)
     private readonly transactionRepo: TransactionRepository,
+    @Inject(WOMPI_REPOSITORY)
     private readonly wompi: WompiGateway,
   ) {}
 

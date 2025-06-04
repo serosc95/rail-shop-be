@@ -1,66 +1,38 @@
+// src/app.module.ts
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { ProductController } from './infrastructure/controllers/product.controller';
 import { PaymentController } from './infrastructure/controllers/payment.controller';
-import { ProductRepositoryAdapter } from './infrastructure/database/repositories/product.repository.adapter';
-import { TransactionRepositoryAdapter } from './infrastructure/database/repositories/transaction.repository.adapter';
-import { WompiGatewayAdapter } from './infrastructure/wompi/wompi.gateway.adapter';
-import { ProductEntity } from './infrastructure/database/entities/product.entity';
-import { TransactionEntity } from './infrastructure/database/entities/transaction.entity';
-import { ListProductsUseCase } from './app/use-cases/list-products.usecase';
-import { CreatePaymentUseCase } from './app/use-cases/create-payment.usecase';
+
+import { DatabaseModule } from './infrastructure/database/database.module';
+import { UseCasesModule } from './app/use-cases/use-cases.module';
+import { WompiModule } from './infrastructure/wompi/wompi.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: '.env',
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
+
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'postgres',
+        host: config.get('DB_HOST'),
+        port: config.get<number>('DB_PORT'),
+        username: config.get('DB_USERNAME'),
+        password: config.get('DB_PASSWORD'),
+        database: config.get('DB_NAME'),
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        synchronize: true,
+      }),
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'admin',
-      password: 'admin123',
-      database: 'wompi',
-      entities: [ProductEntity, TransactionEntity],
-      synchronize: true,
-    }),
-    TypeOrmModule.forFeature([ProductEntity, TransactionEntity]),
+
+    DatabaseModule,
+    UseCasesModule,
+    WompiModule,
   ],
-  controllers: [
-    ProductController,
-    PaymentController,
-  ],
-  providers: [
-    {
-      provide: 'ProductRepository',
-      useClass: ProductRepositoryAdapter,
-    },
-    {
-      provide: 'TransactionRepository',
-      useClass: TransactionRepositoryAdapter,
-    },
-    {
-      provide: 'WompiGateway',
-      useClass: WompiGatewayAdapter,
-    },
-    {
-      provide: ListProductsUseCase,
-      useFactory: (productRepo: ProductRepositoryAdapter) =>
-        new ListProductsUseCase(productRepo),
-      inject: ['ProductRepository'],
-    },
-    {
-      provide: CreatePaymentUseCase,
-      useFactory: (
-        productRepo: ProductRepositoryAdapter,
-        transactionRepo: TransactionRepositoryAdapter,
-        wompi: WompiGatewayAdapter
-      ) => new CreatePaymentUseCase(productRepo, transactionRepo, wompi),
-      inject: ['ProductRepository', 'TransactionRepository', 'WompiGateway'],
-    },
-  ],
+  controllers: [ProductController, PaymentController],
 })
 export class AppModule {}
