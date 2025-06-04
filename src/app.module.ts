@@ -6,7 +6,7 @@ import { ProductController } from './infrastructure/controllers/product.controll
 import { PaymentController } from './infrastructure/controllers/payment.controller';
 
 import { DatabaseModule } from './infrastructure/database/database.module';
-import { UseCasesModule } from './app/use-cases/use-cases.module';
+import { UseCasesModule } from './app/usecases/use-cases.module';
 import { WompiModule } from './infrastructure/wompi/wompi.module';
 
 @Module({

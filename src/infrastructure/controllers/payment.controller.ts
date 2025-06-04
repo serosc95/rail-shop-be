@@ -4,7 +4,7 @@ import {
   Body,
   BadRequestException,
 } from '@nestjs/common';
-import { CreatePaymentUseCase } from '../../app/use-cases/create-payment.usecase';
+import { CreatePaymentUseCase } from '../../app/usecases/create-payment.usecase';
 import { CreatePaymentDto } from '../../app/dtos/create-payment.dto';
 import { PaymentResponseDto } from '../../app/dtos/payment-response.dto';
 import { ErrorResponseDto } from '../../app/dtos/error-response.dto';

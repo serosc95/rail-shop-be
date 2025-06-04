@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { ApiTags, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
-import { ListProductsUseCase } from '../../app/use-cases/list-products.usecase';
+import { ListProductsUseCase } from '../../app/usecases/list-products.usecase';
 import { ProductDto } from '../../app/dtos/product.dto';
 
 @ApiTags('Products')
