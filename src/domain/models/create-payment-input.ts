@@ -1,9 +1,15 @@
-import { CardDataDto } from '../../app/dtos/create-payment.dto';
+export interface CardData {
+  cardNumber: string;
+  cardHolderName: string;
+  expirationMonth: number;
+  expirationYear: number;
+  cvc: string;
+}
 
 export interface CreatePaymentInput {
   productId: string;
-  cantidad: number;
+  quantity: number;
   customerEmail: string;
-  cardData: CardDataDto;
-  cuotas?: number;
+  cardData: CardData;
+  installments?: number;
 }

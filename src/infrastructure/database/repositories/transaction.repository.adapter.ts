@@ -12,8 +12,8 @@ export class TransactionRepositoryAdapter implements TransactionRepository {
     private readonly repo: Repository<TransactionEntity>,
   ) {}
 
-  async create(transaction: Transaction): Promise<Transaction> {
-    const entity = this.repo.create({
+  private toEntity(transaction: Transaction): TransactionEntity {
+    return this.repo.create({
       id: transaction.id,
       productId: transaction.productId,
       amount: transaction.amount,
@@ -21,23 +21,41 @@ export class TransactionRepositoryAdapter implements TransactionRepository {
       status: transaction.status,
       wompiTransactionId: transaction.wompiTransactionId,
     });
+  }
 
-    const saved = await this.repo.save(entity);
-
+  private toDomain(entity: TransactionEntity): Transaction {
     return new Transaction(
-      saved.id,
-      saved.productId,
-      Number(saved.amount),
-      saved.customerEmail,
-      saved.status as TransactionStatus,
-      saved.wompiTransactionId,
+      entity.id,
+      entity.productId,
+      Number(entity.amount),
+      entity.customerEmail,
+      entity.status as TransactionStatus,
+      entity.wompiTransactionId,
     );
   }
 
+  async create(transaction: Transaction): Promise<Transaction> {
+    try {
+      const entity = this.toEntity(transaction);
+      const saved = await this.repo.save(entity);
+      return this.toDomain(saved);
+    } catch (error) {
+      throw new Error(`Error saving transaction: ${error.message}`);
+    }
+  }
+
   async updateStatus(id: string, status: TransactionStatus, wompiId?: string) {
-    await this.repo.update(id, {
-      status,
-      wompiTransactionId: wompiId,
-    });
+    const updateData: Partial<TransactionEntity> = { status };
+    if (wompiId) {
+      updateData.wompiTransactionId = wompiId;
+    }
+    await this.repo.update(id, updateData);
+  }
+
+  async findById(id: string): Promise<Transaction | null> {
+    const entity = await this.repo.findOne({ where: { id } });
+    if (!entity) return null;
+    return this.toDomain(entity);
   }
 }
+
