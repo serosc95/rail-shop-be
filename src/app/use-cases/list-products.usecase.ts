@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { PRODUCT_REPOSITORY } from '../../domain/repositories/tokens';
 import { ProductRepository } from '../../domain/repositories/product.repository';
-
+import { Product } from '../../domain/models/product';
 
 @Injectable()
 export class ListProductsUseCase {
@@ -10,7 +10,7 @@ export class ListProductsUseCase {
     private readonly productRepo: ProductRepository
   ) {}
 
-  async execute() {
+  async execute(): Promise<Product[]> {
     return this.productRepo.findAll();
   }
 }
