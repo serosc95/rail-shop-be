@@ -5,9 +5,9 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { CreatePaymentUseCase } from '../../app/use-cases/create-payment.usecase';
-import { CreatePaymentDto } from '../dtos/create-payment.dto';
-import { PaymentResponseDto } from '../dtos/payment-response.dto';
-import { ErrorResponseDto } from '../dtos/error-response.dto';
+import { CreatePaymentDto } from '../../app/dtos/create-payment.dto';
+import { PaymentResponseDto } from '../../app/dtos/payment-response.dto';
+import { ErrorResponseDto } from '../../app/dtos/error-response.dto';
 import {
   ApiTags,
   ApiOperation,

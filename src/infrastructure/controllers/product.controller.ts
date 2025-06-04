@@ -1,7 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { ListProductsUseCase } from '../../app/use-cases/list-products.usecase';
 import { ApiTags, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
-import { ProductDto } from '../dtos/product.dto';
+import { ProductDto } from '../../app/dtos/product.dto';
 
 @ApiTags('Products')
 @Controller('products')
