@@ -1,4 +1,3 @@
-// src/infrastructure/wompi/wompi.module.ts
 import { Module } from '@nestjs/common';
 import { WompiGatewayAdapter } from './wompi.gateway.adapter';
 import { WOMPI_REPOSITORY } from '../../domain/repositories/tokens';

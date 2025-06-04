@@ -1,4 +1,3 @@
-// src/app/use-cases/use-cases.module.ts
 import { Module } from '@nestjs/common';
 import { CreatePaymentUseCase } from './create-payment.usecase';
 import { ListProductsUseCase } from './list-products.usecase';
