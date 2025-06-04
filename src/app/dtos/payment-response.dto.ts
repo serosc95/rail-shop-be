@@ -35,4 +35,8 @@ export class PaymentResponseDto {
   @IsNumber()
   @IsOptional()
   statusCode?: number;
+
+  constructor(message: string) {
+    this.message = message;
+  }
 }

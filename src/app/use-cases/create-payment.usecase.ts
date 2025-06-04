@@ -6,93 +6,122 @@ import { TransactionRepository } from '../../domain/repositories/transaction.rep
 import { WompiGateway } from '../../domain/repositories/wompi.gateway';
 import { Transaction, TransactionStatus } from '../../domain/models/transaction';
 
+export enum CreatePaymentErrors {
+  ProductNotFound = 'ProductNotFound',
+  OutOfStock = 'OutOfStock',
+  PaymentFailed = 'PaymentFailed',
+}
+
+interface CreatePaymentInput {
+  productId: string;
+  cantidad: number;
+  customerEmail: string;
+  cardData: any;
+  cuotas: number;
+}
+
 @Injectable()
 export class CreatePaymentUseCase {
+  private readonly maxRetries = 5;
+  private readonly initialDelay = 3000;
+
   constructor(
-    @Inject(PRODUCT_REPOSITORY)
-    private readonly productRepo: ProductRepository,
-    @Inject(TRANSACTION_REPOSITORY)
-    private readonly transactionRepo: TransactionRepository,
-    @Inject(WOMPI_REPOSITORY)
-    private readonly wompi: WompiGateway,
+    @Inject(PRODUCT_REPOSITORY) private readonly productRepo: ProductRepository,
+    @Inject(TRANSACTION_REPOSITORY) private readonly transactionRepo: TransactionRepository,
+    @Inject(WOMPI_REPOSITORY) private readonly wompi: WompiGateway,
   ) {}
 
-  async execute(input: any): Promise<Result<'PaymentSuccess', 'ProductNotFound' | 'OutOfStock' | 'PaymentFailed'>> {
+  async execute(input: CreatePaymentInput): Promise<Result<'PaymentSuccess', CreatePaymentErrors>> {
     const product = await this.productRepo.findById(input.productId);
-    if (!product) return fail('ProductNotFound');
+    if (!product) return fail(CreatePaymentErrors.ProductNotFound);
 
-    if (product.stock <= 0 || product.stock < input.cantidad) return fail('OutOfStock');
+    if (product.stock < input.cantidad) return fail(CreatePaymentErrors.OutOfStock);
 
-    const total = product.price * input.cantidad;
+    const total = this.calculateTotal(product.price, input.cantidad);
 
-    const transaction = new Transaction(
-      crypto.randomUUID(),
-      product.id,
-      total,
-      input.customerEmail,
-      TransactionStatus.PENDING
-    );
+    const transaction = this.createInitialTransaction(product.id, total, input.customerEmail);
     await this.transactionRepo.create(transaction);
 
-    const tokenCard = await this.wompi.chargeCard(input.cardData);
-    if (!tokenCard.success) {
+    const wompiResult = await this.processWompiTransaction(input, total);
+    if (!wompiResult.success || !wompiResult.transactionId) {
       await this.transactionRepo.updateStatus(transaction.id, TransactionStatus.FAILED);
-      return fail('PaymentFailed');
-    }
-    
-    const tokenAcceptance = await this.wompi.getAcceptanceToken();
-    if (!tokenAcceptance.success) {
-      await this.transactionRepo.updateStatus(transaction.id, TransactionStatus.FAILED);
-      return fail('PaymentFailed');
+      return fail(CreatePaymentErrors.PaymentFailed);
     }
 
-    const transactionId = await this.wompi.createTransaction({
+    const status = await this.pollTransactionStatus(wompiResult.transactionId);
+    if (status === 'APPROVED') {
+      await this.transactionRepo.updateStatus(transaction.id, TransactionStatus.SUCCESS, wompiResult.transactionId);
+      await this.productRepo.updateStock(product.id, product.stock - input.cantidad);
+      return ok('PaymentSuccess');
+    }
+
+    await this.transactionRepo.updateStatus(transaction.id, TransactionStatus.FAILED, wompiResult.transactionId);
+    return fail(CreatePaymentErrors.PaymentFailed);
+  }
+
+  private createInitialTransaction(
+    productId: string,
+    total: number,
+    customerEmail: string,
+  ): Transaction {
+    return new Transaction(
+      crypto.randomUUID(),
+      productId,
+      total,
+      customerEmail,
+      TransactionStatus.PENDING
+    );
+  }
+
+  private calculateTotal(price: number, cantidad: number): number {
+    return price * cantidad;
+  }
+
+  private async processWompiTransaction(input: CreatePaymentInput, total: number): Promise<{ success: boolean, transactionId?: string }> {
+    const cardTokenResult = await this.wompi.chargeCard(input.cardData);
+    if (!cardTokenResult.success || !cardTokenResult.transactionId) return { success: false };
+
+    const acceptanceTokenResult = await this.wompi.getAcceptanceToken();
+    if (!acceptanceTokenResult.success || !acceptanceTokenResult.acceptanceToken) return { success: false };
+
+    const wompiTransaction = await this.wompi.createTransaction({
       amountInCents: total,
-      currency: "COP",
+      currency: 'COP',
       customerEmail: input.customerEmail,
-      token: tokenCard.transactionId!,
+      token: cardTokenResult.transactionId,
       reference: crypto.randomUUID(),
-      acceptanceToken: tokenAcceptance.acceptanceToken!,
+      acceptanceToken: acceptanceTokenResult.acceptanceToken,
       installments: input.cuotas,
     });
-    if (!transactionId.success) {
-      await this.transactionRepo.updateStatus(transaction.id, TransactionStatus.FAILED);
-      return fail('PaymentFailed');
-    }
 
-    const maxRetries = 5;
-    let delayMs = 3000;
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    if (!wompiTransaction.success || !wompiTransaction.transactionId) return { success: false };
 
-      const transactionStatus = await this.wompi.getTransactionStatus(transactionId.transactionId!);
-      if (!transactionStatus.success) {
-        await this.transactionRepo.updateStatus(transaction.id, TransactionStatus.FAILED, transactionId.transactionId!);
-        return fail('PaymentFailed');
-      }
-  
-      const status = transactionStatus.status;
-  
-      if (status === 'APPROVED') {
-        await this.transactionRepo.updateStatus(transaction.id, TransactionStatus.SUCCESS, transactionId.transactionId!);
-        await this.productRepo.updateStock(product.id, product.stock - input.cantidad);
-        return ok('PaymentSuccess');      
-      }
-  
-      if (status === 'DECLINED' || status === 'VOIDED') {
-        await this.transactionRepo.updateStatus(transaction.id, TransactionStatus.FAILED, transactionId.transactionId!);
-        return fail('PaymentFailed');
-      }
-  
-      if (status === 'PENDING' && attempt < maxRetries) {
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
-        delayMs *= 2; 
-      } else if (status === 'PENDING') {
-        await this.transactionRepo.updateStatus(transaction.id, TransactionStatus.FAILED, transactionId.transactionId!);
-        return fail('PaymentFailed');
+    return { success: true, transactionId: wompiTransaction.transactionId };
+  }
+
+  private async pollTransactionStatus(transactionId: string): Promise<'APPROVED' | 'DECLINED' | 'VOIDED' | 'PENDING' | 'UNKNOWN'> {
+    let delay = this.initialDelay;
+
+    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+      const statusResult = await this.wompi.getTransactionStatus(transactionId);
+
+      if (!statusResult.success) return 'UNKNOWN';
+
+      const status = statusResult.status;
+
+      if (status === 'APPROVED') return 'APPROVED';
+      if (status === 'DECLINED' || status === 'VOIDED') return status;
+
+      if (status === 'PENDING' && attempt < this.maxRetries) {
+        await this.sleep(delay);
+        delay *= 2;
       }
     }
 
-    await this.transactionRepo.updateStatus(transaction.id, TransactionStatus.FAILED, transactionId.transactionId!);
-    return fail('PaymentFailed');
+    return 'PENDING';
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }

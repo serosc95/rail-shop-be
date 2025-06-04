@@ -16,7 +16,6 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 
-
 @ApiTags('Payment')
 @Controller('payment')
 export class PaymentController {
@@ -26,14 +25,14 @@ export class PaymentController {
   @ApiOperation({ summary: 'Realizar un pago' })
   @ApiBody({ type: CreatePaymentDto })
   @ApiResponse({ status: 201, description: 'Pago exitoso', type: PaymentResponseDto })
-  @ApiBadRequestResponse({ description: 'Producto no encontrado', type: ErrorResponseDto })
-  @ApiBadRequestResponse({ description: 'Producto sin stock disponible', type: ErrorResponseDto })
-  @ApiBadRequestResponse({ description: 'Error al procesar el pago con Wompi', type: ErrorResponseDto })
-  async pay(@Body() body: CreatePaymentDto) {
+  @ApiBadRequestResponse({ description: 'Error en la solicitud', type: ErrorResponseDto })
+  async pay(@Body() body: CreatePaymentDto): Promise<PaymentResponseDto> {
     const result = await this.createPayment.execute(body);
+
     if (result.isFailure()) {
-      throw new BadRequestException({ error: result.value });
+      throw new BadRequestException({ message: result.value });
     }
-    return { message: 'Pago recibido correctamente' };
+
+    return new PaymentResponseDto('Pago recibido correctamente');
   }
 }
