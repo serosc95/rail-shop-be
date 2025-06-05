@@ -1,98 +1,152 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+# Proyecto NestJS - Tienda con Pago
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+[![NestJS](https://img.shields.io/badge/nestjs-10.x-red)](https://nestjs.com/)
 
-## Description
+Este proyecto es una aplicación permite la venta de productos y la realización de pagos mediante tarjeta de crédito utilizando una pasarela de pagos.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+---
 
-## Project setup
+## 🚀 Tecnologías Utilizadas
 
-```bash
-$ npm install
-```
+- NestJS
+- TypeScript
+- Swagger
+- PostgreSQL
 
-## Compile and run the project
+---
+
+## ⚙️ Funcionalidades
+
+- Listado de productos disponibles.
+- Realización de pagos mediante tarjeta de crédito.
+- Actualización automática de stock tras una compra exitosa.
+- Documentación interactiva mediante Swagger.
+- Arquitectura modular y limpia con principios DDD (Domain-Driven Design).
+
+---
+
+## 📁 Estructura del proyecto
 
 ```bash
-# development
-$ npm run start
+src/
+├── App.tsx
+├── main.tsx
+├── components/              # Componentes de UI
+├── store/                   # Gestión de estado global
+├── styles/                  # Archivos CSS globales y personalizados
+├── utils/                   # Validaciones y utilidades
+└── hooks/                   # Hooks personalizados
+ ```
 
-# watch mode
-$ npm run start:dev
+---
 
-# production mode
-$ npm run start:prod
+## 📦 Endpoints
+
+### 1. Obtener Productos
+
+**GET** `/api/products`
+
+**Descripción:** Devuelve el listado de productos disponibles.
+
+**Respuesta de ejemplo:**
+
+```json
+[
+  {
+    "id": "62662509-7f29-4150-92f3-2cb182b095ba",
+    "name": "Gorra",
+    "description": "Color rojo",
+    "price": "200000",
+    "stock": 15
+  },
+  {
+    "id": "7574d94b-632d-4ea0-98a0-c6c91fa1812b",
+    "name": "Zapatos",
+    "description": "Talla 42",
+    "price": "8000000",
+    "stock": 5
+  },
+  {
+    "id": "146b6e2b-09b1-440a-863d-bb7c6378f6c8",
+    "name": "Camiseta",
+    "description": "Talla M",
+    "price": "5000000",
+    "stock": 8
+  }
+]
 ```
 
-## Run tests
+---
+
+### 2. Realizar Pago
+
+**POST** `/api/payment`
+
+**Descripción:** Procesa el pago de un producto mediante tarjeta de crédito.
+
+**Body de ejemplo:**
+
+```json
+{
+  "productId": "146b6e2b-09b1-440a-863d-bb7c6378f6c8",
+  "cantidad": 2,
+  "cuotas": 5,
+  "customerEmail": "cliente@email.com",
+  "cardData": {
+    "cardNumber": "4242424242424242",
+    "cvc": "123",
+    "expMonth": "08",
+    "expYear": "28",
+    "cardHolder": "José Pérez"
+  }
+}
+```
+
+**Respuesta de ejemplo:**
+
+```json
+{
+  "message": "Pago recibido correctamente"
+}
+```
+
+---
+
+### 3. Documentación Swagger
+
+**GET** `/api/docs`
+
+**Descripción:** Acceso a la documentación interactiva del API.
+
+---
+
+## 🧪 Requisitos
+
+- Node.js >= 18
+- NestJS CLI
+- Cuenta de pruebas en Wompi
+
+---
+
+## 🔧 Instalación y Ejecución
+
+1. Clonar repositorio
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+git clone https://github.com/serosc95/rail-shop-be.git
+cd rail-shop-be
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+2. Levantar el proyecto
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Instalar dependencias
+npm install
+
+# Ejecutar el servidor en desarrollo
+npm run start:dev
+
+# Acceder a la API en: http://localhost:3000
+# Documentación Swagger: http://localhost:3000/api/docs
 ```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
