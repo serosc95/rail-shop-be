@@ -74,7 +74,8 @@ export class CreatePaymentUseCase {
   }
 
   private calculateTotal(price: number, cantidad: number): number {
-    return price * cantidad;
+    const priceInCent = price * 100;
+    return priceInCent * cantidad;
   }
 
   private async processWompiTransaction(input: CreatePaymentInput, total: number): Promise<{ success: boolean, transactionId?: string }> {
